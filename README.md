@@ -5,6 +5,10 @@ To install dependencies:
 ```bash
 bun install
 ```
+The command bun install express socket.io is used to install the packages "express" and "socket.io" using Bun's package manager.
+```bash
+bun install express socket.io
+```
 
 To run:
 
