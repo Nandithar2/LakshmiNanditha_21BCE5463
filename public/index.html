@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chess-like Game</title>
+    <link rel="stylesheet" href="css/pico.min.css">
+    <style>
+#grid {
+    display: grid; 
+    grid-template-columns: repeat(5, 50px); 
+    grid-template-rows: repeat(5, 50px); 
+    gap: 1px; 
+}
+
+.cell {
+    width: 50px; 
+    height: 50px; 
+    border: 1px solid black; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    font-size: 16px; 
+    cursor: pointer; 
+}
+
+    </style>
+</head>
+<body>
+    <h1>start game</h1>
+    <div id="grid"></div>
+    <div id="message"></div>
+    
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+    const socket = io();
+
+    function initializeGrid() {
+            const grid = document.getElementById('grid');
+            for (let i = 0; i < 25; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.dataset.index = i;
+                cell.addEventListener('click', () => {
+                    const character = prompt('Enter your character (e.g., Pawn):');
+                    const move = prompt('Enter your move (e.g., L):');
+                    if (character && move) {
+                        socket.emit('move', { character, move });
+                    }
+                });
+                grid.appendChild(cell);
+            }
+        }
+
+        initializeGrid();
+
+    socket.on('player-assign', (player) => {
+            document.getElementById('message').textContent = `You are Player ${player}`;
+        });
+
+        socket.on('game-start', () => {
+            document.getElementById('message').textContent = 'Game started!';
+        });
+
+        socket.on('game-update', (gameState) => {
+            updateGrid(gameState.grid);
+            document.getElementById('message').textContent = `Player ${gameState.currentPlayer}'s turn`;
+        });
+
+        socket.on('invalid-move', (message) => {
+            alert(message);
+        });
+
+        socket.on('game-over', (message) => {
+            alert(message);
+            document.getElementById('message').textContent = 'Game Over!';
+        });
+
+        function updateGrid(gridState) {
+            const cells = document.querySelectorAll('.cell');
+            cells.forEach((cell, index) => {
+                const row = Math.floor(index / 5);
+                const col = index % 5;
+                const cellValue = gridState[row][col];
+                cell.textContent = cellValue || '';
+                cell.style.backgroundColor = cellValue ? 'lightblue' : '';
+            });
+        }
+
+        // document.querySelectorAll('.cell').forEach(cell => {
+        //     cell.addEventListener('click', () => {
+        //         const index = cell.dataset.index;
+        //         const move = prompt('Enter your move (e.g., P1:L):');
+        //         if (move) {
+        //             const [character, direction] = move.split(':');
+        //             socket.emit('move', { character, move: direction });
+        //         }
+        //     });
+        // });
+</script>
+
+</body>
+</html>
